@@ -13,10 +13,10 @@ import (
 func untar(dst string, r io.Reader) error {
 
 	gzr, err := gzip.NewReader(r)
-	defer gzr.Close()
 	if err != nil {
 		return err
 	}
+	defer gzr.Close()
 
 	tr := tar.NewReader(gzr)
 
@@ -48,16 +48,16 @@ func untar(dst string, r io.Reader) error {
 		// check the file type
 		switch header.Typeflag {
 
-		// if its a dir and it doesn't exist create it
 		case tar.TypeDir:
+			// if its a dir and it doesn't exist create it
 			if _, err := os.Stat(target); err != nil {
 				if err := os.MkdirAll(target, 0755); err != nil {
 					return err
 				}
 			}
 
-		// if it's a file create it
 		case tar.TypeReg:
+			// if it's a file create it
 			f, err := os.OpenFile(target, os.O_CREATE|os.O_RDWR, os.FileMode(header.Mode))
 			if err != nil {
 				return err
@@ -66,6 +66,12 @@ func untar(dst string, r io.Reader) error {
 
 			// copy over contents
 			if _, err := io.Copy(f, tr); err != nil {
+				return err
+			}
+
+		case tar.TypeSymlink:
+			// if it's a symlink create it
+			if err := os.Symlink(header.Linkname, target); err != nil {
 				return err
 			}
 		}

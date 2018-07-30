@@ -12,6 +12,13 @@ import (
 // creating the file structure at 'dst' along the way, and writing any files
 func untar(dst string, r io.Reader) error {
 
+	// dst does not exists, create it
+	if _, err := os.Stat(dst); err != nil {
+		if err := os.MkdirAll(dst, 0755); err != nil {
+			return err
+		}
+	}
+
 	gzr, err := gzip.NewReader(r)
 	if err != nil {
 		return err
